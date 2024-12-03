@@ -1,16 +1,29 @@
+use std::collections::HashMap;
 use std::env;
 use std::fs;
 use std::iter;
 
 fn solve_part_one(left_list: &Vec<i32>, right_list: &Vec<i32>) -> i32 {
-    let mut left_list = left_list.clone();
-    let mut right_list = right_list.clone();
-    left_list.sort();
-    right_list.sort();
-
     let answer = iter::zip(left_list, right_list)
         .map(|(left_num, right_num)| (left_num - right_num).abs())
         .sum();
+
+    return answer;
+}
+
+fn solve_part_two(left_list: &Vec<i32>, right_list: &Vec<i32>) -> i32 {
+    let mut number_counter = HashMap::new();
+    for number in right_list {
+        number_counter
+            .entry(number)
+            .and_modify(|counter| *counter += 1)
+            .or_insert(1);
+    }
+
+    let mut answer = 0;
+    for number in left_list {
+        answer += number * number_counter.get(number).unwrap_or(&0);
+    }
 
     return answer;
 }
@@ -31,9 +44,16 @@ fn main() {
         right_list.push(numbers[1]);
     }
 
+    left_list.sort();
+    right_list.sort();
+
     println!("--- Day 1: Historian Hysteria ---");
     println!(
         "Answer for part 1: {}",
         solve_part_one(&left_list, &right_list)
+    );
+    println!(
+        "Answer for part 2: {}",
+        solve_part_two(&left_list, &right_list)
     );
 }
