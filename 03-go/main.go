@@ -7,18 +7,16 @@ import (
     "strconv"
 )
 
-func solvePartOne(input string) int {
-    mulPattern, _ := regexp.Compile(`mul\(\d{1,3},\d{1,3}\)`)
-    digitPattern, _ := regexp.Compile(`\d+`)
+var mulPattern = regexp.MustCompile(`mul\((\d{1,3}),(\d{1,3})\)`)
 
-    mulMatches := mulPattern.FindAllString(input, -1)
+func solvePartOne(input string) int {
+    mulMatches := mulPattern.FindAllStringSubmatch(input, -1)
 
     answer := 0
     for _, mul:= range mulMatches {
-        digitMatches := digitPattern.FindAllString(mul, 2)
-        d1, _ := strconv.Atoi(digitMatches[0])
-        d2, _ := strconv.Atoi(digitMatches[1])
-        answer += d1 * d2
+        digit1, _ := strconv.Atoi(mul[1])
+        digit2, _ := strconv.Atoi(mul[2])
+        answer += digit1 * digit2
     }
 
     return answer
