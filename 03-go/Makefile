@@ -1,6 +1,7 @@
 .PHONY: test
-test: main example.txt
-	./main example.txt
+test: main example-01.txt example-02.txt
+	./main example-01.txt
+	./main example-02.txt
 
 .PHONY: solve
 solve: main input.txt
