@@ -5,8 +5,15 @@ import java.util.*;
 
 
 public class Main {
-    static boolean isCorrectlyOrdered(Set<String> rules, List<String> update) {
-        Comparator<String> comparator = (x, y) -> {
+    static class PageComparator implements Comparator<String> {
+        private Set<String> rules;
+
+        public PageComparator(Set<String> rules) {
+            this.rules = rules;
+        }
+
+        @Override
+        public int compare(String x, String y) {
             if (rules.contains(x + "|" + y)) {
                 return -1;
             } else if (rules.contains(y + "|" + x)) {
@@ -14,7 +21,11 @@ public class Main {
             } else {
                 return 0;
             }
-        };
+        }
+    }
+
+    static boolean isCorrectlyOrdered(Set<String> rules, List<String> update) {
+        Comparator<String> comparator = new PageComparator(rules);
 
         for (int i = 0; i < update.size() - 1; i++) {
             String current = update.get(i);
@@ -39,6 +50,18 @@ public class Main {
             .sum();
     }
 
+    static int solvePartTwo(Set<String> rules, List<List<String>> updates) {
+        Comparator<String> comparator = new PageComparator(rules);
+
+        return updates.stream()
+            .filter(update -> !isCorrectlyOrdered(rules, update))
+            .map(update -> update.stream()
+                .sorted(comparator)
+                .toList())
+            .mapToInt(sortedUpdate -> middlePageNumber(sortedUpdate))
+            .sum();
+    }
+
     public static void main(String[] args) throws IOException {
         if (args.length < 1) {
             System.err.println("Input file not provided");
@@ -57,5 +80,6 @@ public class Main {
 
         System.out.println("--- Day 5: Print Queue ---");
         System.out.println("Answer for part 1: " + solvePartOne(rules, updates));
+        System.out.println("Answer for part 2: " + solvePartTwo(rules, updates));
     }
 }
