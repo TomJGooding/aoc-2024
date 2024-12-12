@@ -48,6 +48,46 @@ sub solve_part_one {
     return $answer;
 }
 
+sub equation_can_be_true_with_concat {
+    my ($total, $index, $test_value, $numbers) = @_;
+
+    return 0 if $total > $test_value;
+
+    if ($index == @$numbers - 1) {
+        return ($total + $numbers->[$index] == $test_value) ||
+               ($total * $numbers->[$index] == $test_value) ||
+               ($total . $numbers->[$index] == $test_value);
+    }
+
+    my $add_result = equation_can_be_true_with_concat(
+        $total + $numbers->[$index], $index + 1, $test_value, $numbers
+    );
+    my $multiply_result = equation_can_be_true_with_concat(
+        $total * $numbers->[$index], $index + 1, $test_value, $numbers
+    );
+    my $concat_result = equation_can_be_true_with_concat(
+        $total . $numbers->[$index], $index + 1, $test_value, $numbers
+    );
+
+    return $add_result || $multiply_result || $concat_result;
+}
+
+sub solve_part_two {
+    my @input = @_;
+
+    my $answer = 0;
+
+    for my $line (@input) {
+        my ($test_value, @numbers) = $line =~ m/(\d+)/g;
+        if (equation_can_be_true_with_concat(
+                $numbers[0], 1, $test_value, \@numbers)) {
+            $answer += $test_value;
+        }
+    }
+
+    return $answer;
+}
+
 sub main {
     if (@ARGV < 1) {
         print STDERR "Input file not provided\n";
@@ -59,6 +99,7 @@ sub main {
 
     print "--- Day 7: Bridge Repair ---\n";
     printf "Answer for part 1: %d\n", solve_part_one(@input);
+    printf "Answer for part 2: %d\n", solve_part_two(@input);
 }
 
 main();
