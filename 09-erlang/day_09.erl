@@ -14,29 +14,32 @@ parse_disk_map(Str) when is_list(Str) ->
     lists:append(
       [make_blocks(Index, Digit) || {Index, Digit} <- lists:enumerate(0, Digits)]).
 
-move_file_blocks(Blocks, []) ->
-    Blocks;
-move_file_blocks(Blocks, Free) ->
-    LastBlock = lists:last(Blocks),
-    BlocksInit = lists:droplast(Blocks),
-    case LastBlock of
-        -1 ->
-            move_file_blocks(BlocksInit, lists:droplast(Free));
-        _ ->
-            {BeforeFree, AfterFree} = lists:split(hd(Free), BlocksInit),
-            move_file_blocks(BeforeFree ++ [LastBlock] ++ tl(AfterFree), tl(Free))
+calc_checksum(BlocksList) when is_list(BlocksList) ->
+    calc_checksum(list_to_tuple(BlocksList));
+calc_checksum(BlocksTuple) when is_tuple(BlocksTuple) ->
+    calc_checksum(BlocksTuple, 0, tuple_size(BlocksTuple) - 1, 0).
+calc_checksum(_, LeftIdx, RightIdx, Acc) when LeftIdx > RightIdx ->
+    Acc;
+calc_checksum(BlocksTuple, LeftIdx, RightIdx, Acc) ->
+    LeftBlock = element(LeftIdx + 1, BlocksTuple),
+    RightBlock = element(RightIdx + 1, BlocksTuple),
+    case {LeftBlock, RightBlock} of
+        {-1, -1} ->
+            calc_checksum(BlocksTuple, LeftIdx, RightIdx - 1, Acc);
+        {-1, _} ->
+            NewAcc = Acc + (LeftIdx * RightBlock),
+            calc_checksum(BlocksTuple, LeftIdx + 1, RightIdx - 1, NewAcc);
+        {_, -1} ->
+            NewAcc = Acc + (LeftIdx * LeftBlock),
+            calc_checksum(BlocksTuple, LeftIdx + 1, RightIdx - 1, NewAcc);
+        {_, _} ->
+            NewAcc = Acc + (LeftIdx * LeftBlock),
+            calc_checksum(BlocksTuple, LeftIdx + 1, RightIdx, NewAcc)
     end.
-
-calc_checksum(FileBlocks) ->
-    lists:sum(lists:map(fun({Index, FileID}) -> Index * FileID end, lists:enumerate(0, FileBlocks))).
 
 solve_part_one(Bin) ->
     Blocks = parse_disk_map(Bin),
-    Free = [Index || {Index, Block} <- lists:enumerate(0, Blocks), Block == -1],
-
-    Compact = move_file_blocks(Blocks, Free),
-
-    calc_checksum(Compact).
+    calc_checksum(Blocks).
 
 main([InputFile]) ->
     {ok, Bin} = file:read_file(InputFile),
